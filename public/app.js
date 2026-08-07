@@ -8,6 +8,88 @@ let allTransactions = [];
 let summary = {};
 let chartIngresoDonut, chartEgresoDonut, chartTimeline;
 let deleteTargetId = null;
+let pendingAuthAction = null;
+
+// ─── Auth ──────────────────────────────────────────────────────────────────
+
+function isAuthed() {
+  return !!sessionStorage.getItem('adminPassword');
+}
+
+function getAuthHeaders() {
+  const pwd = sessionStorage.getItem('adminPassword');
+  return pwd ? { 'x-admin-password': pwd } : {};
+}
+
+function updateAuthUI() {
+  const label = document.getElementById('auth-label');
+  const btn = document.getElementById('btn-auth');
+  if (isAuthed()) {
+    label.textContent = 'Sesión activa';
+    btn.title = 'Cerrar sesión de edición';
+  } else {
+    label.textContent = 'Iniciar sesión';
+    btn.title = 'Acceso de edición';
+  }
+}
+
+function ensureAuth(callback) {
+  if (isAuthed()) {
+    callback();
+    return;
+  }
+  pendingAuthAction = callback;
+  openLoginModal();
+}
+
+function openLoginModal() {
+  document.getElementById('login-error').classList.add('hidden');
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-overlay').classList.remove('hidden');
+  document.getElementById('login-password').focus();
+}
+
+function closeLoginModal() {
+  document.getElementById('login-overlay').classList.add('hidden');
+  pendingAuthAction = null;
+}
+
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errEl = document.getElementById('login-error');
+  errEl.classList.add('hidden');
+  const password = document.getElementById('login-password').value;
+
+  try {
+    await apiFetch(`${API}/login`, { method: 'POST', body: JSON.stringify({ password }) });
+    sessionStorage.setItem('adminPassword', password);
+    updateAuthUI();
+    const action = pendingAuthAction;
+    pendingAuthAction = null;
+    document.getElementById('login-overlay').classList.add('hidden');
+    showToast('Sesión de edición iniciada ✓');
+    if (action) action();
+  } catch (err) {
+    errEl.textContent = err.message;
+    errEl.classList.remove('hidden');
+  }
+});
+
+document.getElementById('login-close').addEventListener('click', closeLoginModal);
+document.getElementById('login-cancel').addEventListener('click', closeLoginModal);
+document.getElementById('login-overlay').addEventListener('click', e => {
+  if (e.target === document.getElementById('login-overlay')) closeLoginModal();
+});
+
+document.getElementById('btn-auth').addEventListener('click', () => {
+  if (isAuthed()) {
+    sessionStorage.removeItem('adminPassword');
+    updateAuthUI();
+    showToast('Sesión de edición cerrada.');
+  } else {
+    openLoginModal();
+  }
+});
 
 // Google Material color palette
 const CATEGORY_COLORS = {
@@ -51,12 +133,20 @@ function showToast(msg, type = 'success') {
 // ─── Fetch helpers ───────────────────────────────────────────────────────────
 
 async function apiFetch(url, options = {}) {
+  const needsAuth = options.method && options.method !== 'GET';
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(needsAuth ? getAuthHeaders() : {})
+    },
     ...options
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: 'Error desconocido' }));
+    if (res.status === 401 && needsAuth) {
+      sessionStorage.removeItem('adminPassword');
+      updateAuthUI();
+    }
     throw new Error(err.error || `HTTP ${res.status}`);
   }
   return res.json();
@@ -324,6 +414,10 @@ function closeModal() {
 }
 
 function openEdit(id) {
+  ensureAuth(() => doOpenEdit(id));
+}
+
+function doOpenEdit(id) {
   const tx = allTransactions.find(t => t.id === id);
   if (!tx) return;
 
@@ -340,8 +434,10 @@ function openEdit(id) {
 }
 
 function openDelete(id) {
-  deleteTargetId = id;
-  document.getElementById('confirm-overlay').classList.remove('hidden');
+  ensureAuth(() => {
+    deleteTargetId = id;
+    document.getElementById('confirm-overlay').classList.remove('hidden');
+  });
 }
 
 function closeDeleteModal() {
@@ -454,10 +550,12 @@ document.getElementById('btn-clear-filters').addEventListener('click', () => {
 // ─── Button wiring ────────────────────────────────────────────────────────────
 
 document.getElementById('btn-add').addEventListener('click', () => {
-  document.getElementById('form-id').value = '';
-  document.getElementById('modal-title').textContent = 'Nueva Transacción';
-  document.getElementById('form-submit').textContent = 'Guardar';
-  openModal();
+  ensureAuth(() => {
+    document.getElementById('form-id').value = '';
+    document.getElementById('modal-title').textContent = 'Nueva Transacción';
+    document.getElementById('form-submit').textContent = 'Guardar';
+    openModal();
+  });
 });
 
 document.getElementById('modal-close').addEventListener('click', closeModal);
@@ -472,7 +570,7 @@ document.getElementById('confirm-overlay').addEventListener('click', e => {
 });
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { closeModal(); closeDeleteModal(); }
+  if (e.key === 'Escape') { closeModal(); closeDeleteModal(); closeLoginModal(); }
 });
 
 // ─── Refresh all ──────────────────────────────────────────────────────────────
@@ -485,6 +583,7 @@ async function refreshAll() {
 
 (async () => {
   try {
+    updateAuthUI();
     await populateCategoryFilter();
     await refreshAll();
   } catch (err) {

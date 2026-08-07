@@ -7,6 +7,7 @@ const XLSX = require('xlsx');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DB_PATH = path.join(__dirname, 'data', 'db.json');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'casillas2025';
 
 app.use(cors());
 app.use(express.json());
@@ -29,7 +30,24 @@ function writeDB(data) {
   fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
 }
 
+function requireAuth(req, res, next) {
+  const token = req.headers['x-admin-password'];
+  if (token !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Contraseña incorrecta o sesión expirada.' });
+  }
+  next();
+}
+
 // ─── API Endpoints ─────────────────────────────────────────────────────────────
+
+// POST /api/login — verify admin password
+app.post('/api/login', (req, res) => {
+  const { password } = req.body;
+  if (password === ADMIN_PASSWORD) {
+    return res.json({ ok: true });
+  }
+  res.status(401).json({ error: 'Contraseña incorrecta.' });
+});
 
 // GET /api/transactions — list all transactions with optional filters
 app.get('/api/transactions', (req, res) => {
@@ -91,7 +109,7 @@ app.get('/api/summary', (req, res) => {
 });
 
 // POST /api/transactions — add a new transaction
-app.post('/api/transactions', (req, res) => {
+app.post('/api/transactions', requireAuth, (req, res) => {
   const db = readDB();
   const { tipo, fecha, concepto, monto, categoria } = req.body;
 
@@ -116,7 +134,7 @@ app.post('/api/transactions', (req, res) => {
 });
 
 // PUT /api/transactions/:id — edit a transaction
-app.put('/api/transactions/:id', (req, res) => {
+app.put('/api/transactions/:id', requireAuth, (req, res) => {
   const db = readDB();
   const id = parseInt(req.params.id);
   const idx = db.transactions.findIndex(t => t.id === id);
@@ -131,7 +149,7 @@ app.put('/api/transactions/:id', (req, res) => {
 });
 
 // DELETE /api/transactions/:id — delete a transaction
-app.delete('/api/transactions/:id', (req, res) => {
+app.delete('/api/transactions/:id', requireAuth, (req, res) => {
   const db = readDB();
   const id = parseInt(req.params.id);
   const idx = db.transactions.findIndex(t => t.id === id);
