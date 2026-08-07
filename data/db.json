@@ -1,0 +1,333 @@
+{
+  "transactions": [
+    {
+      "id": 1,
+      "tipo": "Ingreso",
+      "fecha": "2025-01-15",
+      "concepto": "Venta auto (Caribe)",
+      "monto": 43000,
+      "categoria": "Venta de Vehículos"
+    },
+    {
+      "id": 2,
+      "tipo": "Ingreso",
+      "fecha": "2025-01-19",
+      "concepto": "Venta TV",
+      "monto": 1000,
+      "categoria": "Venta de Muebles / Electrodomésticos"
+    },
+    {
+      "id": 3,
+      "tipo": "Ingreso",
+      "fecha": "2025-01-25",
+      "concepto": "Venta motosierra",
+      "monto": 1500,
+      "categoria": "Venta de Vehículos"
+    },
+    {
+      "id": 4,
+      "tipo": "Ingreso",
+      "fecha": "2025-06-01",
+      "concepto": "Venta varios",
+      "monto": 2500,
+      "categoria": "Venta de Varios / Artículos"
+    },
+    {
+      "id": 5,
+      "tipo": "Ingreso",
+      "fecha": "2025-06-07",
+      "concepto": "Venta varios",
+      "monto": 500,
+      "categoria": "Venta de Varios / Artículos"
+    },
+    {
+      "id": 6,
+      "tipo": "Ingreso",
+      "fecha": "2025-06-19",
+      "concepto": "Venta varios",
+      "monto": 3710,
+      "categoria": "Venta de Varios / Artículos"
+    },
+    {
+      "id": 7,
+      "tipo": "Ingreso",
+      "fecha": "2025-08-26",
+      "concepto": "Venta varios",
+      "monto": 13200,
+      "categoria": "Venta de Varios / Artículos"
+    },
+    {
+      "id": 8,
+      "tipo": "Ingreso",
+      "fecha": "2026-07-24",
+      "concepto": "Venta comedor",
+      "monto": 4000,
+      "categoria": "Venta de Muebles / Electrodomésticos"
+    },
+    {
+      "id": 9,
+      "tipo": "Ingreso",
+      "fecha": "2026-07-25",
+      "concepto": "Venta varios (articulos de cocina)",
+      "monto": 1500,
+      "categoria": "Venta de Varios / Artículos"
+    },
+    {
+      "id": 10,
+      "tipo": "Ingreso",
+      "fecha": "2026-07-31",
+      "concepto": "Venta camas y colchones",
+      "monto": 1600,
+      "categoria": "Venta de Muebles / Electrodomésticos"
+    },
+    {
+      "id": 11,
+      "tipo": "Ingreso",
+      "fecha": "2026-07-31",
+      "concepto": "Venta refigerador",
+      "monto": 500,
+      "categoria": "Venta de Muebles / Electrodomésticos"
+    },
+    {
+      "id": 13,
+      "tipo": "Egreso",
+      "fecha": "2025-01-09",
+      "concepto": "Predial libertad y San Roberto",
+      "monto": 2078,
+      "categoria": "Impuestos y Predial"
+    },
+    {
+      "id": 14,
+      "tipo": "Egreso",
+      "fecha": "2025-01-14",
+      "concepto": "Juicio sucesorio",
+      "monto": 15000,
+      "categoria": "Trámites Legales y Honorarios"
+    },
+    {
+      "id": 15,
+      "tipo": "Egreso",
+      "fecha": "2025-01-16",
+      "concepto": "Predial la barca y viaticos",
+      "monto": 4538,
+      "categoria": "Impuestos y Predial"
+    },
+    {
+      "id": 16,
+      "tipo": "Egreso",
+      "fecha": "2025-01-24",
+      "concepto": "Recoleccion de basura",
+      "monto": 400,
+      "categoria": "Mantenimiento y Servicios"
+    },
+    {
+      "id": 17,
+      "tipo": "Egreso",
+      "fecha": "2025-02-19",
+      "concepto": "Pago SIAPA 365 y 374",
+      "monto": 1462,
+      "categoria": "Agua (SIAPA / SIBAPAS)"
+    },
+    {
+      "id": 18,
+      "tipo": "Egreso",
+      "fecha": "2025-04-01",
+      "concepto": "Pago SIAPA San Roberto",
+      "monto": 887,
+      "categoria": "Agua (SIAPA / SIBAPAS)"
+    },
+    {
+      "id": 19,
+      "tipo": "Egreso",
+      "fecha": "2025-04-09",
+      "concepto": "Pago edictos publico y Judicial",
+      "monto": 1601,
+      "categoria": "Trámites Legales y Honorarios"
+    },
+    {
+      "id": 20,
+      "tipo": "Egreso",
+      "fecha": "2025-06-01",
+      "concepto": "Compra chapa entrada principal 365",
+      "monto": 350,
+      "categoria": "Mantenimiento y Servicios"
+    },
+    {
+      "id": 21,
+      "tipo": "Egreso",
+      "fecha": "2025-06-23",
+      "concepto": "Pago agua potable la Barca",
+      "monto": 2856.81,
+      "categoria": "Agua (SIAPA / SIBAPAS)"
+    },
+    {
+      "id": 22,
+      "tipo": "Egreso",
+      "fecha": "2025-06-23",
+      "concepto": "Gastos viaticos pasajes y comida",
+      "monto": 878,
+      "categoria": "Viáticos y Traslados"
+    },
+    {
+      "id": 23,
+      "tipo": "Egreso",
+      "fecha": "2025-07-02",
+      "concepto": "Pago honorarios despacho juridico",
+      "monto": 10000,
+      "categoria": "Trámites Legales y Honorarios"
+    },
+    {
+      "id": 24,
+      "tipo": "Egreso",
+      "fecha": "2025-09-02",
+      "concepto": "Gastos realizar avaluo casa la Barca",
+      "monto": 820,
+      "categoria": "Trámites Legales y Honorarios"
+    },
+    {
+      "id": 25,
+      "tipo": "Egreso",
+      "fecha": "2025-10-30",
+      "concepto": "Gastos regularizacion de la donacion de la barca",
+      "monto": 1194,
+      "categoria": "Trámites Legales y Honorarios"
+    },
+    {
+      "id": 26,
+      "tipo": "Egreso",
+      "fecha": "2025-11-14",
+      "concepto": "Gastos tramites en registro publico de la propiedad, entrega de la documentación y pago",
+      "monto": 1696,
+      "categoria": "Trámites Legales y Honorarios"
+    },
+    {
+      "id": 27,
+      "tipo": "Egreso",
+      "fecha": "2026-01-19",
+      "concepto": "Predial Casa 46,365",
+      "monto": 2794,
+      "categoria": "Impuestos y Predial"
+    },
+    {
+      "id": 28,
+      "tipo": "Egreso",
+      "fecha": "2026-01-19",
+      "concepto": "Predial  Lote 374",
+      "monto": 1378,
+      "categoria": "Impuestos y Predial"
+    },
+    {
+      "id": 29,
+      "tipo": "Egreso",
+      "fecha": "2026-01-20",
+      "concepto": "Predial la barca",
+      "monto": 1453,
+      "categoria": "Impuestos y Predial"
+    },
+    {
+      "id": 30,
+      "tipo": "Egreso",
+      "fecha": "2026-01-20",
+      "concepto": "SIBAPAS la barca",
+      "monto": 2591,
+      "categoria": "Agua (SIAPA / SIBAPAS)"
+    },
+    {
+      "id": 31,
+      "tipo": "Egreso",
+      "fecha": "2026-01-20",
+      "concepto": "Pasajes a la barca",
+      "monto": 199,
+      "categoria": "Viáticos y Traslados"
+    },
+    {
+      "id": 32,
+      "tipo": "Egreso",
+      "fecha": "2026-01-20",
+      "concepto": "Alimentos la barca",
+      "monto": 120,
+      "categoria": "Viáticos y Traslados"
+    },
+    {
+      "id": 33,
+      "tipo": "Egreso",
+      "fecha": "2026-01-21",
+      "concepto": "SIAPA San Roberto",
+      "monto": 1618,
+      "categoria": "Agua (SIAPA / SIBAPAS)"
+    },
+    {
+      "id": 34,
+      "tipo": "Egreso",
+      "fecha": "2026-01-21",
+      "concepto": "SIAPA Casa 365",
+      "monto": 1029,
+      "categoria": "Agua (SIAPA / SIBAPAS)"
+    },
+    {
+      "id": 35,
+      "tipo": "Egreso",
+      "fecha": "2026-01-21",
+      "concepto": "SIAPA Lote 374",
+      "monto": 997,
+      "categoria": "Agua (SIAPA / SIBAPAS)"
+    },
+    {
+      "id": 36,
+      "tipo": "Egreso",
+      "fecha": "2026-01-22",
+      "concepto": "Predial San Roberto",
+      "monto": 533,
+      "categoria": "Impuestos y Predial"
+    },
+    {
+      "id": 37,
+      "tipo": "Egreso",
+      "fecha": "2026-02-28",
+      "concepto": "Lonas para la venta",
+      "monto": 505,
+      "categoria": "Mantenimiento y Servicios"
+    },
+    {
+      "id": 38,
+      "tipo": "Egreso",
+      "fecha": "2026-04-28",
+      "concepto": "Recuperacion documentos La Barca",
+      "monto": 620,
+      "categoria": "Trámites Legales y Honorarios"
+    },
+    {
+      "id": 39,
+      "tipo": "Egreso",
+      "fecha": "2026-05-05",
+      "concepto": "Pago certtificacion de libre gravable (Casa 365,Lote 374, San Roberto)",
+      "monto": 2142,
+      "categoria": "Trámites Legales y Honorarios"
+    },
+    {
+      "id": 40,
+      "tipo": "Egreso",
+      "fecha": "2026-07-22",
+      "concepto": "Certificado no adeudo SIAPA Lote 274",
+      "monto": 248,
+      "categoria": "Agua (SIAPA / SIBAPAS)"
+    },
+    {
+      "id": 41,
+      "tipo": "Egreso",
+      "fecha": "2026-07-23",
+      "concepto": "Certificado no adeudo Predial Lote 274",
+      "monto": 126,
+      "categoria": "Impuestos y Predial"
+    },
+    {
+      "id": 42,
+      "tipo": "Egreso",
+      "fecha": "2026-08-06",
+      "concepto": "Constancias certificadas del juicio",
+      "monto": 320,
+      "categoria": "Trámites Legales y Honorarios"
+    }
+  ],
+  "nextId": 43
+}

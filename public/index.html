@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ingresos y Gastos — Familia Casillas 2025</title>
+  <meta name="description" content="Panel de control de ingresos y egresos de la Familia Casillas para el año 2025. Visualización, registro y gestión de transacciones en línea." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet" />
+  <script src="vendor/chart.umd.min.js?v=3.0"></script>
+  <link rel="stylesheet" href="styles.css?v=3.0" />
+</head>
+<body>
+
+  <!-- ═══ HEADER ═══════════════════════════════════════════════════════════ -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <!-- Google-style multicolor icon -->
+        <svg class="brand-icon" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="36" height="36" rx="8" fill="white"/>
+          <rect x="2" y="2" width="32" height="32" rx="7" fill="white" stroke="#e0e0e0" stroke-width="0.5"/>
+          <!-- Google-style colored bars -->
+          <rect x="7" y="8" width="6" height="20" rx="3" fill="#4285F4"/>
+          <rect x="15" y="14" width="6" height="14" rx="3" fill="#34A853"/>
+          <rect x="23" y="11" width="6" height="17" rx="3" fill="#EA4335"/>
+          <!-- small accent dot -->
+          <circle cx="10" cy="26" r="2" fill="#FBBC05"/>
+        </svg>
+        <div class="brand-text">
+          <h1 class="brand-title">Casillas · Finanzas</h1>
+          <span class="brand-sub">Ingresos y Gastos 2025</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="btn-export" class="btn btn-secondary" title="Exportar datos a Excel">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar XLSX
+        </button>
+        <button id="btn-add" class="btn btn-primary" title="Agregar nueva transacción">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nueva Transacción
+        </button>
+        <div class="avatar-chip" title="Familia Casillas" aria-label="Usuario">C</div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN ══════════════════════════════════════════════════════════════ -->
+  <main class="main">
+
+    <!-- KPI Cards -->
+    <section class="kpi-grid" aria-label="Resumen financiero">
+      <div class="kpi-card kpi-ingresos">
+        <div class="kpi-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        </div>
+        <div class="kpi-body">
+          <p class="kpi-label">Total Ingresos</p>
+          <p class="kpi-value" id="val-ingresos">—</p>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-egresos">
+        <div class="kpi-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>
+        </div>
+        <div class="kpi-body">
+          <p class="kpi-label">Total Egresos</p>
+          <p class="kpi-value" id="val-egresos">—</p>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-saldo">
+        <div class="kpi-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+        </div>
+        <div class="kpi-body">
+          <p class="kpi-label">Saldo Neto</p>
+          <p class="kpi-value" id="val-saldo">—</p>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-count">
+        <div class="kpi-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div class="kpi-body">
+          <p class="kpi-label">Transacciones</p>
+          <p class="kpi-value" id="val-count">—</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="charts-grid" aria-label="Gráficos">
+      <div class="chart-card chart-donut-ingresos">
+        <h2 class="chart-title">Distribución de Ingresos</h2>
+        <div id="wrapIngresosDonut" class="chart-wrap">
+          <div class="loading-cell">Cargando gráfica…</div>
+        </div>
+      </div>
+
+      <div class="chart-card chart-donut-egresos">
+        <h2 class="chart-title">Distribución de Egresos</h2>
+        <div id="wrapEgresosDonut" class="chart-wrap">
+          <div class="loading-cell">Cargando gráfica…</div>
+        </div>
+      </div>
+
+      <div class="chart-card chart-timeline">
+        <h2 class="chart-title">Ingresos vs Egresos por Mes</h2>
+        <div id="wrapTimeline" class="chart-wrap chart-wrap-tall">
+          <div class="loading-cell">Cargando gráfica…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Table -->
+    <section class="table-section">
+      <div class="table-controls">
+        <div class="search-box">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="filter-search" placeholder="Buscar por concepto…" autocomplete="off" />
+        </div>
+        <div class="filter-group">
+          <select id="filter-tipo">
+            <option value="">Todos los tipos</option>
+            <option value="Ingreso">Ingresos</option>
+            <option value="Egreso">Egresos</option>
+          </select>
+          <select id="filter-categoria">
+            <option value="">Todas las categorías</option>
+          </select>
+          <input type="date" id="filter-desde" title="Desde fecha" />
+          <input type="date" id="filter-hasta" title="Hasta fecha" />
+          <button id="btn-clear-filters" class="btn btn-ghost">Limpiar filtros</button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="transactions-table" aria-label="Tabla de transacciones">
+          <thead>
+            <tr>
+              <th>Tipo</th>
+              <th>Fecha</th>
+              <th>Concepto</th>
+              <th>Categoría</th>
+              <th class="align-right">Monto</th>
+              <th class="align-center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="transactions-tbody">
+            <tr><td colspan="6" class="loading-cell">Cargando datos…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p id="table-footer-info" class="table-footer-info"></p>
+    </section>
+
+  </main>
+
+  <!-- ═══ MODAL TRANSACCIÓN ════════════════════════════════════════════════ -->
+  <div id="modal-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modal-title" class="modal-title">Nueva Transacción</h2>
+        <button id="modal-close" class="modal-close" aria-label="Cerrar">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="transaction-form" autocomplete="off" novalidate>
+        <input type="hidden" id="form-id" />
+        <div class="form-row">
+          <div class="form-group">
+            <label for="form-tipo">Tipo *</label>
+            <select id="form-tipo" required>
+              <option value="">Seleccionar tipo</option>
+              <option value="Ingreso">Ingreso</option>
+              <option value="Egreso">Egreso</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="form-fecha">Fecha *</label>
+            <input type="date" id="form-fecha" required />
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="form-concepto">Concepto *</label>
+          <input type="text" id="form-concepto" placeholder="Descripción de la transacción…" required />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="form-categoria">Categoría *</label>
+            <select id="form-categoria" required>
+              <option value="">Seleccionar categoría</option>
+              <optgroup label="── Ingresos ──">
+                <option>Venta de Vehículos</option>
+                <option>Venta de Muebles / Electrodomésticos</option>
+                <option>Venta de Varios / Artículos</option>
+                <option>Otros Ingresos</option>
+              </optgroup>
+              <optgroup label="── Egresos ──">
+                <option>Impuestos y Predial</option>
+                <option>Agua (SIAPA / SIBAPAS)</option>
+                <option>Trámites Legales y Honorarios</option>
+                <option>Viáticos y Traslados</option>
+                <option>Mantenimiento y Servicios</option>
+                <option>Otros Gastos</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="form-monto">Monto (MXN) *</label>
+            <div class="input-prefix-wrap">
+              <span class="input-prefix">$</span>
+              <input type="number" id="form-monto" min="0" step="0.01" placeholder="0.00" required />
+            </div>
+          </div>
+        </div>
+        <div id="form-error" class="form-error hidden"></div>
+        <div class="modal-footer">
+          <button type="button" id="modal-cancel" class="btn btn-ghost">Cancelar</button>
+          <button type="submit" id="form-submit" class="btn btn-primary">Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ═══ CONFIRM MODAL ═══════════════════════════════════════════════════ -->
+  <div id="confirm-overlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2 id="confirm-title" class="modal-title">Eliminar transacción</h2>
+      </div>
+      <p class="confirm-text">¿Estás seguro de que deseas eliminar esta transacción? Esta acción no se puede deshacer.</p>
+      <div class="modal-footer">
+        <button id="confirm-cancel" class="btn btn-ghost">Cancelar</button>
+        <button id="confirm-ok" class="btn btn-danger">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast / Snackbar -->
+  <div id="toast" class="toast hidden" role="alert" aria-live="polite"></div>
+
+  <script src="app.js?v=3.0"></script>
+</body>
+</html>
