@@ -1,13 +1,20 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
 const path = require('path');
 const XLSX = require('xlsx');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DB_PATH = path.join(__dirname, 'data', 'db.json');
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'casillas2025';
+
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
+  console.error('\n❌  Faltan las variables de entorno SUPABASE_URL y/o SUPABASE_SERVICE_KEY.\n');
+  process.exit(1);
+}
+
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+const TABLE = 'transactions';
 
 app.use(cors());
 app.use(express.json());
@@ -21,21 +28,17 @@ app.use(express.static(path.join(__dirname, 'public'), {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function readDB() {
-  const raw = fs.readFileSync(DB_PATH, 'utf-8');
-  return JSON.parse(raw);
-}
-
-function writeDB(data) {
-  fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf-8');
-}
-
 function requireAuth(req, res, next) {
   const token = req.headers['x-admin-password'];
   if (token !== ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Contraseña incorrecta o sesión expirada.' });
   }
   next();
+}
+
+function handleSupabaseError(res, error) {
+  console.error('Supabase error:', error.message);
+  return res.status(500).json({ error: 'Error de base de datos: ' + error.message });
 }
 
 // ─── API Endpoints ─────────────────────────────────────────────────────────────
@@ -50,34 +53,31 @@ app.post('/api/login', (req, res) => {
 });
 
 // GET /api/transactions — list all transactions with optional filters
-app.get('/api/transactions', (req, res) => {
-  const db = readDB();
-  let txs = db.transactions;
-
+app.get('/api/transactions', async (req, res) => {
   const { tipo, categoria, search, desde, hasta } = req.query;
 
-  if (tipo) txs = txs.filter(t => t.tipo === tipo);
-  if (categoria) txs = txs.filter(t => t.categoria === categoria);
-  if (search) {
-    const q = search.toLowerCase();
-    txs = txs.filter(t => t.concepto.toLowerCase().includes(q));
-  }
-  if (desde) txs = txs.filter(t => t.fecha >= desde);
-  if (hasta) txs = txs.filter(t => t.fecha <= hasta);
+  let query = supabase.from(TABLE).select('*').order('fecha', { ascending: false });
 
-  res.json(txs);
+  if (tipo) query = query.eq('tipo', tipo);
+  if (categoria) query = query.eq('categoria', categoria);
+  if (search) query = query.ilike('concepto', `%${search}%`);
+  if (desde) query = query.gte('fecha', desde);
+  if (hasta) query = query.lte('fecha', hasta);
+
+  const { data, error } = await query;
+  if (error) return handleSupabaseError(res, error);
+  res.json(data);
 });
 
 // GET /api/summary — aggregated KPIs
-app.get('/api/summary', (req, res) => {
-  const db = readDB();
-  const txs = db.transactions;
+app.get('/api/summary', async (req, res) => {
+  const { data: txs, error } = await supabase.from(TABLE).select('tipo, fecha, monto, categoria');
+  if (error) return handleSupabaseError(res, error);
 
   const totalIngresos = txs.filter(t => t.tipo === 'Ingreso').reduce((s, t) => s + t.monto, 0);
   const totalEgresos = txs.filter(t => t.tipo === 'Egreso').reduce((s, t) => s + t.monto, 0);
   const saldo = totalIngresos - totalEgresos;
 
-  // Category breakdown for egresos
   const categoriaEgresos = {};
   txs.filter(t => t.tipo === 'Egreso').forEach(t => {
     categoriaEgresos[t.categoria] = (categoriaEgresos[t.categoria] || 0) + t.monto;
@@ -88,7 +88,6 @@ app.get('/api/summary', (req, res) => {
     categoriaIngresos[t.categoria] = (categoriaIngresos[t.categoria] || 0) + t.monto;
   });
 
-  // Timeline data grouped by month
   const timeline = {};
   txs.forEach(t => {
     const month = t.fecha.substring(0, 7);
@@ -109,63 +108,59 @@ app.get('/api/summary', (req, res) => {
 });
 
 // POST /api/transactions — add a new transaction
-app.post('/api/transactions', requireAuth, (req, res) => {
-  const db = readDB();
+app.post('/api/transactions', requireAuth, async (req, res) => {
   const { tipo, fecha, concepto, monto, categoria } = req.body;
 
   if (!tipo || !fecha || !concepto || monto === undefined || !categoria) {
     return res.status(400).json({ error: 'Todos los campos son requeridos.' });
   }
 
-  const newTx = {
-    id: db.nextId,
-    tipo,
-    fecha,
-    concepto: concepto.trim(),
-    monto: parseFloat(monto),
-    categoria
-  };
+  const { data, error } = await supabase
+    .from(TABLE)
+    .insert({ tipo, fecha, concepto: concepto.trim(), monto: parseFloat(monto), categoria })
+    .select()
+    .single();
 
-  db.transactions.push(newTx);
-  db.nextId += 1;
-  writeDB(db);
-
-  res.status(201).json(newTx);
+  if (error) return handleSupabaseError(res, error);
+  res.status(201).json(data);
 });
 
 // PUT /api/transactions/:id — edit a transaction
-app.put('/api/transactions/:id', requireAuth, (req, res) => {
-  const db = readDB();
+app.put('/api/transactions/:id', requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
-  const idx = db.transactions.findIndex(t => t.id === id);
-
-  if (idx === -1) return res.status(404).json({ error: 'Transacción no encontrada.' });
-
   const { tipo, fecha, concepto, monto, categoria } = req.body;
-  db.transactions[idx] = { id, tipo, fecha, concepto: concepto.trim(), monto: parseFloat(monto), categoria };
-  writeDB(db);
 
-  res.json(db.transactions[idx]);
+  if (!tipo || !fecha || !concepto || monto === undefined || !categoria) {
+    return res.status(400).json({ error: 'Todos los campos son requeridos.' });
+  }
+
+  const { data, error } = await supabase
+    .from(TABLE)
+    .update({ tipo, fecha, concepto: concepto.trim(), monto: parseFloat(monto), categoria })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) return handleSupabaseError(res, error);
+  if (!data) return res.status(404).json({ error: 'Transacción no encontrada.' });
+  res.json(data);
 });
 
 // DELETE /api/transactions/:id — delete a transaction
-app.delete('/api/transactions/:id', requireAuth, (req, res) => {
-  const db = readDB();
+app.delete('/api/transactions/:id', requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
-  const idx = db.transactions.findIndex(t => t.id === id);
 
-  if (idx === -1) return res.status(404).json({ error: 'Transacción no encontrada.' });
+  const { data, error } = await supabase.from(TABLE).delete().eq('id', id).select().single();
 
-  db.transactions.splice(idx, 1);
-  writeDB(db);
-
+  if (error) return handleSupabaseError(res, error);
+  if (!data) return res.status(404).json({ error: 'Transacción no encontrada.' });
   res.json({ ok: true });
 });
 
 // GET /api/export — export transactions to xlsx
-app.get('/api/export', (req, res) => {
-  const db = readDB();
-  const txs = db.transactions;
+app.get('/api/export', async (req, res) => {
+  const { data: txs, error } = await supabase.from(TABLE).select('*').order('fecha', { ascending: true });
+  if (error) return handleSupabaseError(res, error);
 
   const ingresos = txs.filter(t => t.tipo === 'Ingreso').map(t => ({
     Fecha: t.fecha,
