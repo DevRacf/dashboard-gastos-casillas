@@ -375,7 +375,7 @@ body {
 /* SVG Bar Chart Styles */
 .svg-bar-container {
   width: 100%;
-  height: 220px;
+  height: 230px;
   display: flex;
   flex-direction: column;
 }
@@ -405,6 +405,8 @@ body {
 .chart-axis-line { stroke: #dadce0; stroke-width: 1; }
 .chart-grid-line { stroke: #f1f3f4; stroke-width: 1; stroke-dasharray: 4,4; }
 .chart-axis-text { fill: #5f6368; font-size: 10px; font-family: var(--font-body); }
+.chart-year-divider { stroke: #dadce0; stroke-width: 1; stroke-dasharray: 2,3; }
+.chart-year-text { fill: #202124; font-size: 10px; font-weight: 500; font-family: var(--font-sans); }
 
 /* ─── Section header ──────────────────────────────────────────────────────── */
 .section-header {

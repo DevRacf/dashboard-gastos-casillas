@@ -91,18 +91,21 @@ document.getElementById('btn-auth').addEventListener('click', () => {
   }
 });
 
-// Google Material color palette
+// Categorical palette — validated for adjacent-pair distinguishability
+// (see: node scripts/validate_palette.js in the dataviz skill).
+// Each donut assigns colors in a fixed category order, independent of value,
+// so identity never shifts when amounts change.
 const CATEGORY_COLORS = {
-  'Venta de Vehículos':                 '#4285F4',
-  'Venta de Muebles / Electrodomésticos':'#1A73E8',
-  'Venta de Varios / Artículos':         '#669DF6',
-  'Otros Ingresos':                      '#8AB4F8',
-  'Impuestos y Predial':                 '#EA4335',
-  'Agua (SIAPA / SIBAPAS)':             '#1E8E3E',
-  'Trámites Legales y Honorarios':       '#D93025',
-  'Viáticos y Traslados':               '#FBBC04',
-  'Mantenimiento y Servicios':           '#F9AB00',
-  'Otros Gastos':                        '#9AA0A6'
+  'Venta de Vehículos':                  '#2a78d6', // blue
+  'Venta de Muebles / Electrodomésticos':'#eb6834', // orange
+  'Venta de Varios / Artículos':         '#1baf7a', // aqua
+  'Otros Ingresos':                      '#eda100', // yellow
+  'Impuestos y Predial':                 '#2a78d6', // blue
+  'Agua (SIAPA / SIBAPAS)':              '#eb6834', // orange
+  'Trámites Legales y Honorarios':       '#1baf7a', // aqua
+  'Viáticos y Traslados':                '#eda100', // yellow
+  'Mantenimiento y Servicios':           '#e87ba4', // magenta
+  'Otros Gastos':                        '#008300'  // green
 };
 
 // ─── Format currency ─────────────────────────────────────────────────────────
@@ -243,9 +246,9 @@ function buildSvgBarChart(containerId, timelineObj) {
   maxVal = Math.ceil(maxVal / 10000) * 10000;
 
   const svgWidth = 600;
-  const svgHeight = 220;
+  const svgHeight = 230;
   const paddingLeft = 45;
-  const paddingBottom = 30;
+  const paddingBottom = 40;
   const paddingTop = 20;
   const paddingRight = 15;
 
@@ -291,7 +294,31 @@ function buildSvgBarChart(containerId, timelineObj) {
       <rect class="bar-egreso" x="${egrX}" y="${egrY}" width="${barWidth}" height="${egrH}">
         <title>Egresos (${monthLabel} ${y}): ${fmt(egr)}</title>
       </rect>
-      <text class="chart-axis-text" x="${groupX}" y="${svgHeight - 10}" text-anchor="middle">${monthLabel}</text>
+      <text class="chart-axis-text" x="${groupX}" y="${svgHeight - 24}" text-anchor="middle">${monthLabel}</text>
+    `;
+  }).join('');
+
+  // Year dividers + year labels — one per calendar year present, so months
+  // from different years are never confused for one another.
+  const yearMarks = [];
+  months.forEach((m, idx) => {
+    const [y, mo] = m.split('-');
+    if (idx === 0 || mo === '01') yearMarks.push({ idx, year: y });
+  });
+
+  const yearAnnotations = yearMarks.map(({ idx, year }, i) => {
+    const nextIdx = i + 1 < yearMarks.length ? yearMarks[i + 1].idx : months.length;
+    const spanStartX = paddingLeft + idx * groupWidth;
+    const spanEndX = paddingLeft + nextIdx * groupWidth;
+    const spanCenterX = (spanStartX + spanEndX) / 2;
+
+    const divider = idx > 0
+      ? `<line class="chart-year-divider" x1="${spanStartX}" y1="${paddingTop}" x2="${spanStartX}" y2="${paddingTop + chartAreaHeight}" />`
+      : '';
+
+    return `
+      ${divider}
+      <text class="chart-year-text" x="${spanCenterX}" y="${svgHeight - 8}" text-anchor="middle">${year}</text>
     `;
   }).join('');
 
@@ -301,6 +328,7 @@ function buildSvgBarChart(containerId, timelineObj) {
         ${gridLines}
         <line class="chart-axis-line" x1="${paddingLeft}" y1="${paddingTop + chartAreaHeight}" x2="${svgWidth - paddingRight}" y2="${paddingTop + chartAreaHeight}" />
         ${monthBars}
+        ${yearAnnotations}
       </svg>
     </div>
   `;
