@@ -214,6 +214,8 @@ body {
 }
 .btn-icon:hover { background: var(--md-surface-2); color: var(--md-on-surface); }
 
+.btn-label { white-space: nowrap; }
+
 /* ─── Main layout ─────────────────────────────────────────────────────────── */
 .main {
   max-width: 1400px;
@@ -223,6 +225,12 @@ body {
   flex-direction: column;
   gap: 24px;
 }
+
+/* Flex/grid items don't shrink below their content's intrinsic width by
+   default — without this, inner overflow-x:auto scrollers (table, bar
+   chart) never kick in and instead push the whole page wider. */
+.main > * { min-width: 0; }
+.charts-grid > .chart-card { min-width: 0; }
 
 /* ─── KPI Cards ─────────────────────────────────────────────────────────── */
 .kpi-grid {
@@ -378,6 +386,8 @@ body {
   height: 230px;
   display: flex;
   flex-direction: column;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .svg-bar-chart {
@@ -758,10 +768,11 @@ td {
 
 /* ─── Toast (Google-style snackbar) ─────────────────────────────────────── */
 .toast {
+  --toast-tx: -50%;
   position: fixed;
   bottom: 24px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(var(--toast-tx));
   background: #303030;
   border-radius: var(--radius-sm);
   padding: 12px 20px;
@@ -775,8 +786,8 @@ td {
 }
 .toast-error { background: #b31412; }
 @keyframes snackIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from { opacity: 0; transform: translateX(var(--toast-tx)) translateY(12px); }
+  to   { opacity: 1; transform: translateX(var(--toast-tx)) translateY(0); }
 }
 
 /* ─── Utilities ─────────────────────────────────────────────────────────── */
@@ -786,3 +797,75 @@ td {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--md-outline); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--md-outline-hover); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MOBILE / RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Tablet and below: header wraps into two rows, main gets tighter padding */
+@media (max-width: 760px) {
+  .header-inner {
+    height: auto;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    row-gap: 10px;
+  }
+  .header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .header-actions .btn { flex: 1 1 auto; justify-content: center; }
+
+  .main { padding: 16px 16px 48px; gap: 16px; }
+
+  .chart-card { padding: 16px; }
+  .chart-title { margin-bottom: 12px; }
+}
+
+/* Phones: compact header, icon-only action buttons, single-column forms */
+@media (max-width: 480px) {
+  .header-inner { padding: 10px 12px; }
+  .brand-title { font-size: 17px; }
+  .brand-sub { font-size: 11px; }
+  .brand-icon { width: 30px; height: 30px; }
+
+  /* Icon-only buttons — labels stay in the DOM for screen readers via title/aria */
+  .header-actions .btn-label { display: none; }
+  .header-actions .btn { flex: 0 0 auto; padding: 9px; width: 38px; height: 38px; gap: 0; }
+  .header-actions { justify-content: flex-end; gap: 6px; }
+  .header-brand { flex: 1 1 auto; min-width: 0; }
+  .brand-text { min-width: 0; overflow: hidden; }
+  .brand-title, .brand-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .main { padding: 12px 10px 40px; }
+
+  .kpi-card { padding: 14px; gap: 12px; }
+  .kpi-icon { width: 40px; height: 40px; }
+  .kpi-value { font-size: 18px; }
+
+  .table-controls { padding: 12px; }
+  .search-box { max-width: none; width: 100%; }
+  .filter-group { width: 100%; }
+  .filter-group select,
+  .filter-group input[type="date"] { flex: 1 1 130px; }
+
+  th, td { padding: 10px 10px; font-size: 12px; }
+  .category-tag { max-width: 120px; }
+
+  .modal-header, #transaction-form, .modal-footer, .confirm-text {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .form-row { grid-template-columns: 1fr; }
+  .modal-footer { flex-direction: column; }
+  .modal-footer .btn { width: 100%; justify-content: center; }
+
+  .toast {
+    --toast-tx: 0;
+    left: 12px;
+    right: 12px;
+    bottom: 16px;
+    white-space: normal;
+    text-align: center;
+  }
+}

@@ -245,7 +245,10 @@ function buildSvgBarChart(containerId, timelineObj) {
   if (maxVal === 0) maxVal = 10000;
   maxVal = Math.ceil(maxVal / 10000) * 10000;
 
-  const svgWidth = 600;
+  // Minimum pixels per month so labels stay legible — below this width the
+  // chart scrolls horizontally instead of squeezing months together.
+  const MIN_PX_PER_MONTH = 42;
+  const svgWidth = Math.max(600, 45 + 15 + months.length * MIN_PX_PER_MONTH);
   const svgHeight = 230;
   const paddingLeft = 45;
   const paddingBottom = 40;
@@ -324,7 +327,7 @@ function buildSvgBarChart(containerId, timelineObj) {
 
   container.innerHTML = `
     <div class="svg-bar-container">
-      <svg class="svg-bar-chart" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="none">
+      <svg class="svg-bar-chart" viewBox="0 0 ${svgWidth} ${svgHeight}" preserveAspectRatio="none" style="min-width:${svgWidth}px">
         ${gridLines}
         <line class="chart-axis-line" x1="${paddingLeft}" y1="${paddingTop + chartAreaHeight}" x2="${svgWidth - paddingRight}" y2="${paddingTop + chartAreaHeight}" />
         ${monthBars}
@@ -530,7 +533,7 @@ document.getElementById('confirm-ok').addEventListener('click', async () => {
 document.getElementById('btn-export').addEventListener('click', async () => {
   const btn = document.getElementById('btn-export');
   btn.disabled = true;
-  btn.textContent = 'Exportando…';
+  btn.innerHTML = `<span class="btn-label">Exportando…</span>`;
   try {
     const res = await fetch(`${API}/export`);
     if (!res.ok) throw new Error('Error al exportar');
@@ -548,7 +551,7 @@ document.getElementById('btn-export').addEventListener('click', async () => {
     showToast('Error al exportar: ' + err.message, 'error');
   } finally {
     btn.disabled = false;
-    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar XLSX`;
+    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg><span class="btn-label">Exportar XLSX</span>`;
   }
 });
 
