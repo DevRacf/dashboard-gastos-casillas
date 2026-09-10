@@ -2,19 +2,16 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const XLSX = require('xlsx');
-const { createClient } = require('@supabase/supabase-js');
+const db = require('./lib/sheetsDb');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'casillas2025';
 
-if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_KEY) {
-  console.error('\n❌  Faltan las variables de entorno SUPABASE_URL y/o SUPABASE_SERVICE_KEY.\n');
+if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || !process.env.GOOGLE_PRIVATE_KEY || !process.env.GOOGLE_SHEET_ID) {
+  console.error('\n❌  Faltan las variables de entorno GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY y/o GOOGLE_SHEET_ID.\n');
   process.exit(1);
 }
-
-const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-const TABLE = 'transactions';
 
 app.use(cors());
 app.use(express.json());
@@ -36,9 +33,22 @@ function requireAuth(req, res, next) {
   next();
 }
 
-function handleSupabaseError(res, error) {
-  console.error('Supabase error:', error.message);
+function handleDbError(res, error) {
+  console.error('Google Sheets error:', error.message);
   return res.status(500).json({ error: 'Error de base de datos: ' + error.message });
+}
+
+function applyFilters(rows, { tipo, categoria, search, desde, hasta }) {
+  let result = rows;
+  if (tipo) result = result.filter(t => t.tipo === tipo);
+  if (categoria) result = result.filter(t => t.categoria === categoria);
+  if (search) {
+    const needle = search.toLowerCase();
+    result = result.filter(t => t.concepto.toLowerCase().includes(needle));
+  }
+  if (desde) result = result.filter(t => t.fecha >= desde);
+  if (hasta) result = result.filter(t => t.fecha <= hasta);
+  return result;
 }
 
 // ─── API Endpoints ─────────────────────────────────────────────────────────────
@@ -54,25 +64,25 @@ app.post('/api/login', (req, res) => {
 
 // GET /api/transactions — list all transactions with optional filters
 app.get('/api/transactions', async (req, res) => {
-  const { tipo, categoria, search, desde, hasta } = req.query;
-
-  let query = supabase.from(TABLE).select('*').order('fecha', { ascending: false });
-
-  if (tipo) query = query.eq('tipo', tipo);
-  if (categoria) query = query.eq('categoria', categoria);
-  if (search) query = query.ilike('concepto', `%${search}%`);
-  if (desde) query = query.gte('fecha', desde);
-  if (hasta) query = query.lte('fecha', hasta);
-
-  const { data, error } = await query;
-  if (error) return handleSupabaseError(res, error);
-  res.json(data);
+  try {
+    const rows = await db.getAllRows();
+    const filtered = applyFilters(rows, req.query)
+      .slice()
+      .sort((a, b) => b.fecha.localeCompare(a.fecha));
+    res.json(filtered);
+  } catch (error) {
+    handleDbError(res, error);
+  }
 });
 
 // GET /api/summary — aggregated KPIs
 app.get('/api/summary', async (req, res) => {
-  const { data: txs, error } = await supabase.from(TABLE).select('tipo, fecha, monto, categoria');
-  if (error) return handleSupabaseError(res, error);
+  let txs;
+  try {
+    txs = await db.getAllRows();
+  } catch (error) {
+    return handleDbError(res, error);
+  }
 
   const totalIngresos = txs.filter(t => t.tipo === 'Ingreso').reduce((s, t) => s + t.monto, 0);
   const totalEgresos = txs.filter(t => t.tipo === 'Egreso').reduce((s, t) => s + t.monto, 0);
@@ -115,14 +125,12 @@ app.post('/api/transactions', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Todos los campos son requeridos.' });
   }
 
-  const { data, error } = await supabase
-    .from(TABLE)
-    .insert({ tipo, fecha, concepto: concepto.trim(), monto: parseFloat(monto), categoria })
-    .select()
-    .single();
-
-  if (error) return handleSupabaseError(res, error);
-  res.status(201).json(data);
+  try {
+    const record = await db.insert({ tipo, fecha, concepto: concepto.trim(), monto: parseFloat(monto), categoria });
+    res.status(201).json(record);
+  } catch (error) {
+    handleDbError(res, error);
+  }
 });
 
 // PUT /api/transactions/:id — edit a transaction
@@ -134,33 +142,36 @@ app.put('/api/transactions/:id', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'Todos los campos son requeridos.' });
   }
 
-  const { data, error } = await supabase
-    .from(TABLE)
-    .update({ tipo, fecha, concepto: concepto.trim(), monto: parseFloat(monto), categoria })
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) return handleSupabaseError(res, error);
-  if (!data) return res.status(404).json({ error: 'Transacción no encontrada.' });
-  res.json(data);
+  try {
+    const record = await db.update(id, { tipo, fecha, concepto: concepto.trim(), monto: parseFloat(monto), categoria });
+    if (!record) return res.status(404).json({ error: 'Transacción no encontrada.' });
+    res.json(record);
+  } catch (error) {
+    handleDbError(res, error);
+  }
 });
 
 // DELETE /api/transactions/:id — delete a transaction
 app.delete('/api/transactions/:id', requireAuth, async (req, res) => {
   const id = parseInt(req.params.id);
 
-  const { data, error } = await supabase.from(TABLE).delete().eq('id', id).select().single();
-
-  if (error) return handleSupabaseError(res, error);
-  if (!data) return res.status(404).json({ error: 'Transacción no encontrada.' });
-  res.json({ ok: true });
+  try {
+    const record = await db.remove(id);
+    if (!record) return res.status(404).json({ error: 'Transacción no encontrada.' });
+    res.json({ ok: true });
+  } catch (error) {
+    handleDbError(res, error);
+  }
 });
 
 // GET /api/export — export transactions to xlsx
 app.get('/api/export', async (req, res) => {
-  const { data: txs, error } = await supabase.from(TABLE).select('*').order('fecha', { ascending: true });
-  if (error) return handleSupabaseError(res, error);
+  let txs;
+  try {
+    txs = (await db.getAllRows()).slice().sort((a, b) => a.fecha.localeCompare(b.fecha));
+  } catch (error) {
+    return handleDbError(res, error);
+  }
 
   const ingresos = txs.filter(t => t.tipo === 'Ingreso').map(t => ({
     Fecha: t.fecha,

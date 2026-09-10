@@ -5,12 +5,13 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "migrate": "node google-sheets/migrate.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.2",
     "cors": "^2.8.5",
     "express": "^4.19.2",
+    "googleapis": "^144.0.0",
     "xlsx": "^0.18.5"
   }
 }
