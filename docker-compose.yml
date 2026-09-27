@@ -1,0 +1,9 @@
+services:
+  dashboard:
+    build: .
+    container_name: dashboard-gastos-casillas
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-80}:3000"
+    env_file:
+      - .env
