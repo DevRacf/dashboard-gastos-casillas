@@ -5,10 +5,11 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "import-legacy": "node scripts/import-legacy-data.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.112.2",
+    "better-sqlite3": "^11.9.1",
     "cors": "^2.8.5",
     "express": "^4.19.2",
     "xlsx": "^0.18.5"
